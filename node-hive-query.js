@@ -142,6 +142,7 @@ app.get('/hourlyFraud', function (req, res) {
 			console.log("data error:", "no data");
 			res.send("no data");
 		}
+		
 	console.log("data.rows.length:", data.rows.length);
 	res.setHeader("Content-Type", "application/json");
 
@@ -152,6 +153,8 @@ app.get('/hourlyFraud', function (req, res) {
 		res.write(padding);
 		padding = ",";
 		var str = JSON.stringify(record);
+		str = str.replace(re, '');
+		res.write(str);
 	  });
 	res.end("]");
 	console.log("finished json response=", dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT"));
