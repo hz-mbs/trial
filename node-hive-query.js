@@ -103,33 +103,39 @@ app.get('/list', function (req, res) {
 
 app.get('/hourlyFraud', function (req, res) {
 	var day = req.query.day;
-	var hour = req.query.hour;
-	var illegalOdds = req.query.illegalOdds;
-	console.log("day=", day);
-	console.log("hour=", hour);
-	console.log("illegalOdds=", illegalOdds);
+	var hour = parseInt(req.query.hour);
+	var start = parseInt(req.query.start);
+	var end = parseInt(req.query.end);
+	var illegalOdds = parseFloat(req.query.illegalOdds );
+	console.log("day=", day, "hour=", " start=", " end=", end, "illegalOdds=", illegalOdds);
+
 	var now = new Date();
 	if (!day){
 		day = dateFormat(now, "yyyy-mm-dd");
 	}
-	if (!hour){
-		hour = dateFormat(now, "hh");
+	if (!day){
+		day = now;
 	}
+//	if (!hour){
+//		hour = dateFormat(now, "hh");
+//	}
 	
 //	SELECT * FROM frauddb.hourlysuspect_test  where from_unixtime(CAST(traffic_date/1000 as BIGINT), 'yyyy-MM-dd') = '2015-12-07' and traffic_hour = '0' limit 2000
 //	SELECT * FROM frauddb.hourlysuspect_test  where traffic_date = UNIX_TIMESTAMP('2015-12-07', 'yyyy-MM-dd' )*1000 and traffic_hour = '0' limit 2000
 	var sql = "SELECT * FROM frauddb.hourlysuspect_test ";
-	if (day){
-		sql += " where traffic_date = " + " unix_timestamp('"+day +"', 'yyyy-MM-dd' )*1000 ";
-		if (hour){
+	sql += " where traffic_date = " + " unix_timestamp('"+day +"', 'yyyy-MM-dd' )*1000 ";
+	
+	if (start && end && (start <= end) ){	
+		sql += " and (traffic_hour between " + start + " and "+ end +" ) ";
+	}
+	else if  (hour){ //either or 
 			sql += " and traffic_hour = '" + hour+"'";
-		}
 	}
 	if (illegalOdds){
 		sql += " and illegalOdds >= " + illegalOdds;
 	}
 	
-	sql += " limit 2000";
+//	sql += " limit 2000";
 	console.log("sql=", sql);
 	console.log("start time=", dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT"));
 	hive.fetch(sql, function(err, data) {
